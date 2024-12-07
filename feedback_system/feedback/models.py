@@ -6,5 +6,8 @@ class Feedback(models.Model):
     rating = models.IntegerField()
     feedback_text = models.TextField()
 
+    class Meta:
+        unique_together = ('course_id', 'instructor')  # Prevent duplicates for the same course and instructor
+
     def __str__(self):
         return f"{self.course_id} - {self.instructor}"
