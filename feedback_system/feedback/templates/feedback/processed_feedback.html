@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Processed Feedback</title>
+</head>
+<body>
+    <h1>Processed Feedback</h1>
+    <table>
+        <tr>
+            <th>Course</th>
+            <th>Instructor</th>
+            <th>Rating</th>
+            <th>Feedback</th>
+            <th>GPT Analysis</th>
+        </tr>
+        {% for feedback in feedbacks %}
+        <tr>
+            <td>{{ feedback.course_id }}</td>
+            <td>{{ feedback.instructor }}</td>
+            <td>{{ feedback.rating }}</td>
+            <td>{{ feedback.feedback_text }}</td>
+            <td>{{ feedback.gpt_analysis }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
