@@ -32,11 +32,20 @@ jobs:
 
       # Step 3: Install Dependencies
       - name: Install dependencies
+        working-directory: feedback_system
         run: |
           python -m pip install --upgrade pip
-          pip install -r feedback_system/requirements.txt
+          pip install -r requirements.txt
 
-      # Step 4: Run Migrations and Tests
+      # Step 4: Verify Directory for Debugging (Optional Step)
+      - name: List files for debugging
+        run: |
+          echo "Current Directory:"
+          pwd
+          echo "List of Files:"
+          ls -R feedback_system
+
+      # Step 5: Run Migrations and Tests
       - name: Run migrations and tests
         working-directory: feedback_system
         env:
@@ -45,40 +54,3 @@ jobs:
         run: |
           python manage.py migrate
           python manage.py test
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build-and-test
-
-    steps:
-      # Step 1: Checkout Code
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Step 2: Log in to Docker Hub
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Step 3: Build and Push Docker Image
-      - name: Build and push Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/project2-lms:latest -f feedback_system/Dockerfile .
-          docker push ${{ secrets.DOCKER_USERNAME }}/project2-lms:latest
-
-      # Step 4: Deploy to Remote Server
-      - name: Deploy to server
-        env:
-          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-        run: |
-          sudo apt-get install -y sshpass
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SERVER_IP <<EOF
-          docker pull ${{ secrets.DOCKER_USERNAME }}/project2-lms:latest
-          docker stop project2-lms-container || true
-          docker rm project2-lms-container || true
-          docker run -d --name project2-lms-container -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/project2-lms:latest
-          EOF
