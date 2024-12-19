@@ -38,8 +38,9 @@ jobs:
 
       # Step 4: Run Migrations and Tests
       - name: Run migrations and tests
-        working-directory: feedback_system  # Set working directory to the folder with manage.py
+        working-directory: feedback_system  # Move into feedback_system directory
         env:
+          DJANGO_SETTINGS_MODULE: feedback_system.settings  # Explicitly set the settings module
           DATABASE_URL: postgres://django_user:django_pass@localhost:5432/django_db
         run: |
           python manage.py migrate
