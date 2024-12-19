@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  build-and-test:
-    runs-on: self-hosted  # Use your local machine
+  build-and-run:
+    runs-on: self-hosted  # Run on your local self-hosted runner
 
     services:
       postgres:
@@ -24,25 +24,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set Up Python
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      # Step 3: Install Dependencies
-      - name: Install dependencies
-        working-directory: feedback_system
+      # Step 2: Set Up Docker
+      - name: Set up Docker
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          docker --version
 
-      # Step 4: Run Migrations and Start Server Locally
-      - name: Run migrations and start Django server
+      # Step 3: Build and Run Docker Container
+      - name: Build and run Django app in Docker
         working-directory: feedback_system
         env:
-          DJANGO_SETTINGS_MODULE: feedback_system.settings
           DATABASE_URL: postgres://django_user:django_pass@localhost:5432/django_db
         run: |
-          python manage.py migrate
-          python manage.py runserver 0.0.0.0:8000
+          # Stop and remove existing container if running
+          docker stop django-container-local || true
+          docker rm django-container-local || true
+          
+          # Build the Docker image
+          docker build -t django-app-local .
+
+          # Run the container
+          docker run -d -p 8000:8000 --name django-container-local \
+          -e DATABASE_URL=$DATABASE_URL \
+          django-app-local
+
+      # Step 4: Verify Application is Running
+      - name: Check running containers
+        run: docker ps
